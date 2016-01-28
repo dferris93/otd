@@ -1,0 +1,58 @@
+Note that this project is quite rough.  It was written to fullfill a 
+specific need that I had.  Therefore configuration is not pretty, and 
+nothing is packaged to be installed with pip.
+
+Setup Instructions.
+
+1.  Create a virtualenvironment:
+        virtualenv <virtualenv>
+
+2.  Install uwsgi:
+        cd <virtualenv>
+        . ./bin/activate
+        pip install uwsgi
+
+3. Install flash
+    cd <virtualenv>
+    . ./bin/activate
+    pip install flask
+
+4.  Edit start.sh and edit the following variables to what you'd like:
+    PORT=4443
+    IP=127.0.0.1
+    PROCESSES=4
+    BUFFER_SIZE=65536
+    LOGFILE="otd.log"
+    PIDFILE="otd.pid"
+    VIRTUALENV=<path to your virtualenv>
+
+5.  Edit stop.sh and set the following variables:   
+    PIDFILE="otd.pid"
+
+6.  You'll need to set up nginx or apache (preferable nginx) to have a 
+    specific URL set up as a uwsgi proxy.
+
+    Here is an example for nginx.  You'll have to fill in ip and port
+    to match what's in start.sh.
+
+        location /otd {
+            include            uwsgi_params;
+            uwsgi_pass         $ip:$port;
+            proxy_set_header   Host $host;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Host $server_name;
+        }
+
+7.  Edit app/__init__.py and set the following variables:
+
+        self.downloadurl = '/otd'
+        self.filepath = '<path where you want to put your files>'
+        self.debug = False
+
+    Note that self.downloadurl needs to be the same as the location
+    in step 6.
+
+8.  Run start.sh.  uwsgi will start up.  You can access files like so:
+
+    http|https://<your web server>/otd?f=<your file>
