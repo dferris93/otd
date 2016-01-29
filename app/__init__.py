@@ -1,4 +1,5 @@
 from flask import abort, Flask, Response, request
+import fcntl
 from functools import partial
 import mimetypes
 import os
@@ -16,39 +17,43 @@ app = Flask(__name__)
 
 @app.route(config.downloadurl, methods=['GET'])
 def send_file():
-    fname = request.args.get('f', None)
-
-    if not fname:
-        abort(404)
-
-    file_path = os.path.join(config.filepath, fname)
-    print file_path
-
     def generate(file_path):
         try:
             with open(file_path, 'r') as f:
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 for byte in iter(partial(f.read, 65536), ''):
                     yield byte
-        except IOError:
+                os.unlink(file_path)
+        except IOError as e:
+            print "IOError: %s File: %s" % (e, file_path)
             abort(500)
-        except OSError:
+        except OSError as e:
+            print "OSerror: %s File: %s" % (e, file_path)
             abort(500)
 
-        try:
-            os.unlink(file_path)
-        except OSError:
-            abort(500)
+    fname = request.args.get('f', None)
+    if not fname:
+        print "Invalid request arguments: %s" % fname
+        abort(404)
+
+    file_path = os.path.join(config.filepath, fname)
+
+    try:
+        sz = str(os.stat(file_path).st_size)
+    except OSError as e:
+        print "OS error stating file: %s Error: %s Status Code 500" % (
+                file_path,
+                e)
+        abort(500)
 
     mt = mimetypes.guess_type(file_path)[0]
     if not mt:
         mt = "binary/octet-stream"
 
-    try:
-        t = os.stat(file_path)
-    except OSError:
-        abort(500)
-
-    sz=str(t.st_size)
+    print "File: %s Size: %s Mime Type: %s" % (
+            file_path,
+            sz,
+            mt)
 
     return Response(
             generate(file_path),
