@@ -23,13 +23,14 @@ def send_file():
                 fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 for byte in iter(partial(f.read, 65536), ''):
                     yield byte
-                os.unlink(file_path)
         except IOError as e:
             print "IOError: %s File: %s" % (e, file_path)
             abort(500)
         except OSError as e:
             print "OSerror: %s File: %s" % (e, file_path)
             abort(500)
+        finally:
+            os.unlink(file_path)
 
     fname = request.args.get('f', None)
     if not fname:
