@@ -7,12 +7,12 @@ Setup Instructions.
 1.  Create a virtualenvironment:
         virtualenv <virtualenv>
 
-2.  Install uwsgi:
+2.  Install uwsgi (2.0.12 is the version tested):
         cd <virtualenv>
         . ./bin/activate
         pip install uwsgi
 
-3. Install flash
+3. Install flask
     cd <virtualenv>
     . ./bin/activate
     pip install flask
@@ -43,6 +43,9 @@ Setup Instructions.
             proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header   X-Forwarded-Host $server_name;
         }
+
+    You can probably use an http socket with uwsgi, but I never tested in
+    that configuration.
 
 7.  Edit app/__init__.py and set the following variables:
 
