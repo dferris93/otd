@@ -1,4 +1,4 @@
-from flask import abort, Flask, Response, request
+from flask import abort, Flask, Response, request, escape
 import fcntl
 from functools import partial
 import mimetypes
@@ -37,7 +37,9 @@ def send_file():
         print "Invalid request arguments: %s" % fname
         abort(404)
 
-    file_path = os.path.join(config.filepath, fname)
+    file_path = os.path.normpath(os.path.join(config.filepath,
+            os.path.basename(fname)))
+    print "File path: %s" % file_path
 
     try:
         sz = str(os.stat(file_path).st_size)
@@ -70,4 +72,4 @@ def main():
     app.run()
 
 if __name__ == "__main__":
-    main()
+	main()
