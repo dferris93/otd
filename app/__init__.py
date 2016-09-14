@@ -3,6 +3,7 @@ import fcntl
 from functools import partial
 import mimetypes
 import os
+import urllib
 
 class ConfigObject(object):
     def __init__(self):
@@ -36,10 +37,16 @@ def send_file():
     if not fname:
         print "Invalid request arguments: %s" % fname
         abort(404)
+    print "File Name: %s" % fname
 
     file_path = os.path.normpath(os.path.join(config.filepath,
             os.path.basename(fname)))
     print "File path: %s" % file_path
+
+    content_disposition = 'attachment; filename="%s"' % (
+                fname.encode('utf8'))
+
+    print "Content disposition: %s" % content_disposition
 
     try:
         sz = str(os.stat(file_path).st_size)
@@ -62,8 +69,7 @@ def send_file():
             generate(file_path),
             mimetype=mt,
             headers={"Content-Type:" : mt,
-                     "Content-Disposition" : "attachment;filename=%s" % (
-                            fname),
+                     "Content-Disposition" : content_disposition,
                      "Content-Length" : sz
                     })
 
