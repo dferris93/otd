@@ -1,9 +1,8 @@
-from flask import abort, Flask, Response, request, escape
+from flask import abort, Flask, Response, request
 import fcntl
 from functools import partial
 import mimetypes
 import os
-import urllib
 
 class ConfigObject(object):
     def __init__(self):
